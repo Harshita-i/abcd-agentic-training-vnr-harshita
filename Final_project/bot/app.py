@@ -7,7 +7,6 @@ from telegram.helpers import escape_markdown
 from dotenv import load_dotenv
 import threading
 import sqlite3
-import gradio as gr
 import re
 # --- ENVIRONMENT AND KEYS ---
 load_dotenv()
@@ -15,10 +14,12 @@ GNEWS_API_KEY = os.getenv("GNEWS_API_KEY")
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
 CHANNEL_ID = os.getenv("TELEGRAM_CHAT_ID", "")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_PATH = os.path.join(BASE_DIR, "news_memory.db")
 
 # --- SQLITE MEMORY INITIALIZE ---
 def init_db():
-    conn = sqlite3.connect("memory.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     # Create table if not exists
     c.execute("""
@@ -35,7 +36,7 @@ def init_db():
     conn.close()
 
 def init_alerts_db():
-    conn = sqlite3.connect("memory.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""
         CREATE TABLE IF NOT EXISTS alerts (
@@ -49,7 +50,7 @@ def init_alerts_db():
 
 
 async def notify_alerts(context, news_data):
-    conn = sqlite3.connect("memory.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT DISTINCT chat_id, keyword FROM alerts")
     rows = c.fetchall()
@@ -70,7 +71,7 @@ async def notify_alerts(context, news_data):
 
 def log_interaction(chat_id, input_topic, news_data, summary):
     print("Logging chat_id:", chat_id)
-    conn = sqlite3.connect("memory.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute(
         "INSERT INTO interactions (chat_id, input_topic, news_data, summary) VALUES (?, ?, ?, ?)",
@@ -186,7 +187,7 @@ async def history_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         n = 3
 
     # Fetch last n interactions for this user
-    conn = sqlite3.connect("memory.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""
         SELECT timestamp, input_topic, summary
@@ -212,7 +213,7 @@ async def history_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def mytopics_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    conn = sqlite3.connect("memory.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     # Count frequency of each topic requested by the user
     c.execute("""
@@ -239,7 +240,7 @@ async def mytopics_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def discover_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    conn = sqlite3.connect("memory.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     # Get top trending topics (by all users, top 10)
     c.execute("""
@@ -280,7 +281,7 @@ async def alert_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=chat_id, text="Please provide a keyword to subscribe to alerts (e.g., /alert AI)")
         return
     keyword = " ".join(context.args).strip().lower()
-    conn = sqlite3.connect("memory.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("INSERT INTO alerts (chat_id, keyword) VALUES (?, ?)", (str(chat_id), keyword))
     conn.commit()
@@ -289,7 +290,7 @@ async def alert_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def alerts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    conn = sqlite3.connect("memory.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT keyword FROM alerts WHERE chat_id = ?", (str(chat_id),))
     rows = c.fetchall()
@@ -308,7 +309,7 @@ async def removealert_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         await context.bot.send_message(chat_id=chat_id, text="Specify the keyword to remove: /removealert <keyword>")
         return
     keyword = " ".join(context.args).strip().lower()
-    conn = sqlite3.connect("memory.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("DELETE FROM alerts WHERE chat_id = ? AND keyword = ?", (str(chat_id), keyword))
     removed = c.rowcount
@@ -320,7 +321,7 @@ async def removealert_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         await context.bot.send_message(chat_id=chat_id, text=f"No alert found for '{keyword}'.")
 
 async def trending_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    conn = sqlite3.connect("memory.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""
         SELECT input_topic, COUNT(*) as count
@@ -362,8 +363,6 @@ def main():
         print("="*50 + "\n")
         app.run_polling()
         
-
-
 
 if __name__ == '__main__':
     main()
