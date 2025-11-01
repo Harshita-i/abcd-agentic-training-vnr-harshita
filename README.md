@@ -1,21 +1,48 @@
 
+
 # **AI News Digest Telegram Bot**
 
-> Get summarized, AI-analyzed news instantly — personalized, stored, and alert-driven.
+>Get summarized, AI-analyzed news instantly — personalized, alert-driven, and tracked with analytics.
 
 ---
 
 ## **Overview**
 
-The **AI News Digest Telegram Bot** provides users with real-time news updates fetched from the **GNews API**, automatically summarized using **Google Gemini AI**, and delivered directly via Telegram.
-It supports features like:
+The **AI News Digest Telegram Bot** delivers real-time, AI-summarized news fetched from the **GNews API** and analyzed by **Google Gemini AI**, all through a Telegram interface.
+
+It enables:
 
 * Personalized topic tracking
-* Keyword-based alerts
+* Keyword-based news alerts
 * Trending topic discovery
-* Persistent chat memory (SQLite)
+* Persistent memory (SQLite)
+* Analytics visualization via **Streamlit Dashboard**
 
-This bot helps users stay informed efficiently, reducing the time needed to read multiple sources.
+This project bridges **real-time news aggregation**, **AI summarization**, and **user personalization**, helping users stay informed efficiently.
+
+---
+
+## **System Overview**
+
+```
+User (Telegram)
+   │
+   ▼
+Telegram Bot (python-telegram-bot)
+   │
+   ▼
+Bot Commands Layer (/news, /alert, /history, etc.)
+   │
+   ▼
+Business Logic Layer
+   ├── GNews API (fetch raw news)
+   ├── Gemini AI (summarize headlines)
+   └── SQLite DB (persist memory)
+   │
+   ▼
+Analytics Dashboard (Streamlit)
+   └── Reads from SQLite → Displays trends, usage stats
+```
 
 ---
 
@@ -48,152 +75,169 @@ This bot helps users stay informed efficiently, reducing the time needed to read
      |
      v
 +---------------------------------------+
-|   SQLite Database (memory.db)         |
+|   SQLite Database (news_memory.db)    |
 | - interactions (user history)         |
 | - alerts (keyword subscriptions)      |
 +---------------------------------------+
+     |
+     v
++--------------------------------------+
+| Streamlit Analytics Dashboard (UI)   |
+|   - Topic trends, alerts, usage data |
++--------------------------------------+
 ```
 
 ---
 
-## **Key Functionalities**
+## **Features & Commands**
 
-| Feature                  | Description                                                                          |
-| ------------------------ | ------------------------------------------------------------------------------------ |
-| `/news <topic>`          | Fetches latest news from GNews API, summarizes via Gemini AI, and displays AI Digest |
-| `/history`               | Displays user’s last 3–5 news summaries                                              |
-| `/mytopics`              | Shows frequently searched topics by user                                             |
-| `/discover`              | Suggests trending topics unexplored by user                                          |
-| `/alert <keyword>`       | Sets a keyword alert — user notified when keyword appears in new news                |
-| `/alerts`                | Lists all user’s active alerts                                                       |
-| `/removealert <keyword>` | Removes a previously set keyword alert                                               |
-| `/trending`              | Displays globally trending topics across all users                                   |
+| Command               | Description                                                     |
+| --------------------- | --------------------------------------------------------------- |
+| `/news <topic>`       | Fetches and summarizes top 5 news for given topic/category      |
+| `/history`            | Displays last few AI summaries viewed by user                   |
+| `/mytopics`           | Shows user’s most frequently searched topics                    |
+| `/discover`           | Recommends trending topics user hasn’t explored yet             |
+| `/alert <keyword>`    | Subscribes user to alerts for keyword appearance in future news |
+| `/alerts`             | Lists all active alerts for user                                |
+| `/removealert <word>` | Deletes a specific alert keyword                                |
+| `/trending`           | Displays globally trending topics (based on all user queries)   |
 
 ---
 
-## **Detailed Flow**
+## **Streamlit Analytics Dashboard**
 
-### **1. /news Command Flow**
+### **Purpose:**
+
+The dashboard provides **visual insights** into bot usage patterns and trending topics.
+
+### **Features:**
+
+* Total users, topics, and alerts count
+* Top requested topics (bar chart)
+* User activity timeline (line chart)
+* Active alerts overview table
+* Recent summaries preview
+
+### **Run Dashboard:**
+
+```
+streamlit run dash.py
+```
+
+---
+
+## **Detailed Command Flows**
+
+### **1. /news Flow**
 
 ```
 User → /news AI
-        ↓
+       ↓
 Telegram Bot Handler
-        ↓
-Check topic → "AI"
-        ↓
-Fetch top 5 articles from GNews API
-        ↓
-Concatenate headlines + descriptions
-        ↓
-Pass to Google Gemini API → Generate 5-point summary
-        ↓
-Store interaction (topic, summary, timestamp) in SQLite
-        ↓
-Check for alert keywords match → Notify subscribers
-        ↓
-Send summarized result to User (and channel if configured)
+       ↓
+Fetch articles from GNews API
+       ↓
+Summarize using Gemini AI
+       ↓
+Store (topic, summary) in SQLite
+       ↓
+Check alerts for matching keywords
+       ↓
+Notify relevant users
+       ↓
+Send summary digest to user (and channel)
 ```
 
----
-
-### **2. /alert Command Flow**
+### **2. /alert Flow**
 
 ```
 User → /alert Bitcoin
-        ↓
-Insert alert record into SQLite (chat_id, keyword)
-        ↓
-Whenever /news runs:
-   ↓
-   Check all alerts table entries
-   ↓
-   If keyword in new article titles/descriptions
        ↓
-       Notify that user ("ALERT: 'Bitcoin' found in latest news!")
+Save (chat_id, keyword) in SQLite alerts table
+       ↓
+Next /news execution checks all alerts
+       ↓
+If keyword found → Notify subscriber
 ```
 
----
-
-### **3. /history Command Flow**
+### **3. /history Flow**
 
 ```
 User → /history 5
-        ↓
-SQLite → SELECT last 5 summaries for chat_id
-        ↓
-Display in reverse chronological order with timestamps
+       ↓
+Fetch last 5 summaries for chat_id
+       ↓
+Display in chronological order
 ```
 
 ---
 
 ## **Database Design**
 
-### **1. interactions Table**
+### **1. interactions**
 
-| Column      | Type         | Description                                   |
-| ----------- | ------------ | --------------------------------------------- |
-| id          | INTEGER (PK) | Auto-increment primary key                    |
-| chat_id     | TEXT         | Telegram chat ID of the user                  |
-| input_topic | TEXT         | The news topic or category                    |
-| news_data   | TEXT         | Raw fetched news data (titles + descriptions) |
-| summary     | TEXT         | AI-generated summary                          |
-| timestamp   | DATETIME     | Automatically set to current timestamp        |
+| Field       | Type         | Description                 |
+| ----------- | ------------ | --------------------------- |
+| id          | INTEGER (PK) | Auto-increment primary key  |
+| chat_id     | TEXT         | Telegram chat/user ID       |
+| input_topic | TEXT         | Topic or category requested |
+| news_data   | TEXT         | Raw fetched news            |
+| summary     | TEXT         | Gemini AI summarized text   |
+| timestamp   | DATETIME     | Auto-generated at insert    |
 
-### **2. alerts Table**
+### **2. alerts**
 
-| Column  | Type         | Description                           |
-| ------- | ------------ | ------------------------------------- |
-| id      | INTEGER (PK) | Auto-increment                        |
-| chat_id | TEXT         | Telegram chat ID                      |
-| keyword | TEXT         | Keyword to monitor for alert triggers |
+| Field   | Type         | Description           |
+| ------- | ------------ | --------------------- |
+| id      | INTEGER (PK) | Auto-increment        |
+| chat_id | TEXT         | Telegram chat/user ID |
+| keyword | TEXT         | User alert keyword    |
 
 ---
 
 ## **Low-Level Design (LLD)**
 
-### **Core Components**
-
-| Component             | Responsibility                              |
-| --------------------- | ------------------------------------------- |
-| `news_command()`      | Fetch, summarize, log, and broadcast news   |
-| `summarize_with_ai()` | Interacts with Gemini API for summarization |
-| `get_news()`          | Interacts with GNews API                    |
-| `log_interaction()`   | Saves each query and summary to SQLite      |
-| `notify_alerts()`     | Checks news data for alert keywords         |
-| `alert_command()`     | Adds alert keywords to database             |
-| `discover_command()`  | Suggests unexplored trending topics         |
-| `mytopics_command()`  | Shows personal topic stats                  |
-| `trending_command()`  | Shows global trending topics                |
+| Component             | Description                                           |
+| --------------------- | ----------------------------------------------------- |
+| `get_news()`          | Fetches top 5 headlines from GNews API                |
+| `summarize_with_ai()` | Sends text to Gemini API and returns concise summary  |
+| `news_command()`      | Handles /news logic: fetch → summarize → notify → log |
+| `log_interaction()`   | Saves user input and AI summary into SQLite DB        |
+| `notify_alerts()`     | Cross-checks new headlines against alert keywords     |
+| `alert_command()`     | Adds keyword alert entry to DB                        |
+| `discover_command()`  | Suggests trending unexplored topics                   |
+| `history_command()`   | Fetches recent summaries for user                     |
+| `trending_command()`  | Finds globally popular topics                         |
 
 ---
 
 ## **Integration Details**
 
-### **APIs Used**
+### **1. GNews API**
 
-1. **GNews API**
+* Endpoint: `https://gnews.io/api/v4/`
+* Parameters:
 
-   * Endpoint: `https://gnews.io/api/v4/`
-   * Used for fetching top or category-based headlines
-   * Requires `GNEWS_API_KEY`
+  * `category`, `lang`, `country`, `q`, `max`
+* Response: JSON containing article titles and descriptions
+* Requires: `GNEWS_API_KEY`
 
-2. **Google Gemini AI**
+### **2. Google Gemini API**
 
-   * Model: `gemini-2.0-flash`
-   * Used for summarizing fetched news content
-   * Requires `GOOGLE_API_KEY`
+* Model: `gemini-2.0-flash`
+* Purpose: Summarize fetched news
+* Requires: `GOOGLE_API_KEY`
 
 ---
 
 ## **Environment Variables**
 
-| Variable             | Description                         |
-| -------------------- | ----------------------------------- |
-| `TELEGRAM_BOT_TOKEN` | Telegram Bot API Token              |
-| `GNEWS_API_KEY`      | GNews API Key                       |
-| `GOOGLE_API_KEY`     | Google Gemini API Key               |
-| `TELEGRAM_CHAT_ID`   | Optional — Channel ID for broadcast |
+| Variable             | Description                       |
+| -------------------- | --------------------------------- |
+| `TELEGRAM_BOT_TOKEN` | Bot token from @BotFather         |
+| `GNEWS_API_KEY`      | API key from GNews                |
+| `GOOGLE_API_KEY`     | API key for Google Gemini         |
+| `TELEGRAM_CHAT_ID`   | Optional channel ID for broadcast |
 
 ---
 
@@ -202,83 +246,38 @@ Display in reverse chronological order with timestamps
 | Layer         | Technology                               |
 | ------------- | ---------------------------------------- |
 | Bot Framework | `python-telegram-bot`                    |
-| AI Model      | `google.generativeai` (Gemini 2.0 Flash) |
+| AI Summarizer | `google-generativeai` (Gemini 2.0 Flash) |
 | Database      | SQLite3                                  |
-| External API  | GNews                                    |
+| Analytics UI  | Streamlit                                |
+| Visualization | Matplotlib, Pandas                       |
 | Environment   | Python 3.10+, dotenv, requests           |
 
 ---
 
-## **Application Architecture Diagram**
+## **Error Handling and Logging**
 
-```
-                 ┌────────────────────┐
-                 │   Telegram Client  │
-                 └─────────┬──────────┘
-                           │
-              ┌────────────▼─────────────┐
-              │  Telegram Bot Framework  │
-              │ (Command Handlers Layer) │
-              └────────────┬─────────────┘
-                           │
-          ┌────────────────┴────────────────┐
-          │                                 │
- ┌────────▼────────┐              ┌─────────▼─────────┐
- │   News Module   │              │   Alerts Module   │
- │  (Fetch + Summ) │              │ (Notify + Manage) │
- └────────┬────────┘              └─────────┬─────────┘
-          │                                 │
-          │                                 │
- ┌────────▼────────┐              ┌─────────▼─────────┐
- │ GNews API Layer │              │   SQLite Memory    │
- └────────┬────────┘              │ interactions/alerts│
-          │                       └─────────┬─────────┘
-          │                                 │
-          └─────────────────────────────────┘
-                     (Read/Write Operations)
-```
+* Handles network failures from GNews and Gemini APIs
+* Catches invalid API keys, rate-limit errors (403, 429)
+* Graceful fallback responses for missing data
+* Prints database operation logs to console
 
 ---
 
-## **Execution Steps**
+## **Security & Privacy**
 
-1. **Install dependencies**
-
-   pip install python-telegram-bot==20.3 google-generativeai python-dotenv requests sqlite3
- 
-
-2. **Set environment variables**
-
-   TELEGRAM_BOT_TOKEN
-   GNEWS_API_KEY
-   GOOGLE_API_KEY
-   TELEGRAM_CHAT_ID
-
-3. **Run the bot**
-
-   python app.py
-
-4. **Test commands on Telegram**
-
-   /news technology
-   /history
-   /alert AI
-   /alerts
-   /mytopics
-   /discover
-
+* User chat IDs stored locally in SQLite (not shared externally)
+* API keys loaded securely from `.env`
+* No personally identifiable information collected
+* SQLite ensures isolated, local data persistence
 
 ---
 
 ## **Example Output**
 
-**Command:**
-`/news space`
-
-**Bot Reply:**
+**Command:** `/news space`
 
 ```
-AI News Digest: Space 
+AI News Digest: Space
 
 • NASA prepares new lunar module test for 2025.
 • SpaceX schedules next Starlink launch this week.
@@ -291,15 +290,15 @@ AI News Digest: Space
 
 ## **Future Enhancements**
 
-* ✅ Multi-language news summaries
-* ✅ Voice-based summaries (TTS integration)
-* ✅ Daily/weekly newsletter generation
-* ✅ Web dashboard for analytics
-* ✅ AI-based keyword suggestion for alerts
+* Multi-language AI summaries
+* Voice summaries (TTS integration)
+* Email/Daily digest subscription
+* Sentiment-based topic ranking
+* WebSocket-based live alerts
 
 ---
 
-## **Flow Diagram (Detailed Command Flow)**
+## **Detailed Flow Diagram**
 
 ```
 +------------------+
@@ -332,5 +331,5 @@ AI News Digest: Space
 +----------------------------+
 ```
 
----
+
 
