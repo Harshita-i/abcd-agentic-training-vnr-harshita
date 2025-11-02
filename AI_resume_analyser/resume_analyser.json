@@ -1,0 +1,373 @@
+{
+  "name": "resume_analyser",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{$json.id}}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        400,
+        432
+      ],
+      "id": "2aa76130-f584-4d97-a034-72930fe7598e",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "w83ARvcTGuKhtp6u",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        608,
+        432
+      ],
+      "id": "0f3ed890-5d5d-4531-8827-cc8bb2478b56",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1QPC3QGnGsGcyeXtVMLRhKIANKC0Y3t5B",
+          "mode": "list",
+          "cachedResultName": "fake_resumes",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1QPC3QGnGsGcyeXtVMLRhKIANKC0Y3t5B"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        192,
+        432
+      ],
+      "id": "e7393af9-7c48-4526-b6f4-0f3a7a1bc15b",
+      "name": "Google Drive Trigger1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "w83ARvcTGuKhtp6u",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are \"The Perfect Resume Analyst,\" an elite, highly precise, and faultlessly accurate data extraction and analysis expert. Your single objective is to process the resume provided by the user and return ALL extracted information in a strictly valid JSON object.\n\n### INSTRUCTIONS:\n1.  **Strict JSON Output:** You MUST respond with ONLY a single, valid JSON object that matches the provided Schema exactly. Do not include any external text, markdown, or commentary.\n2.  **Data Extraction:** Extract all personal, skill, and educational data.\n3.  **Handling Missing Data (CRITICAL):**\n    * If no relevant data is found for **Skills**, the array MUST be an empty list: `[]`.\n    * If no relevant data is found for **Education**, the array MUST be an empty list: `[]`.\n    * If no relevant work experience or projects are found for **Experience**, the array MUST be an empty list: `[]`.\n    * If any single field (like Email, Phone, or Location) is not found, its value MUST be the string **\"N/A\"**.\n4.  **Experience:** Extract only traditional professional job roles, internships, or volunteering roles here.\n    * If a traditional role is found, fill in \"Company,\" \"Role,\" \"Start,\" and \"End.\"\n    * **If no traditional experience is found (like in this resume), the array MUST be an empty list: [].**\n\n5.  **Projects:** Extract all items from the \"Academic Project Details.\"\n    * Set **\"Title\"** to the project name (e.g., \"Capstone Project: Article Flow\").\n    * Set **\"Technologies\"** to the primary tools/stack used (e.g., \"MERN Stack, C Language, MongoDB\").\n    * Set **\"Dates\"** to the date(s) provided (e.g., \"MARCH 2025\" or \"DECEMBER 2024 - APRIL 2025\").\n    * **Note:** Do NOT include the project description in this array; extract only Title, Technologies, and Dates.\n6.  **Total Years Experience:** Calculate the total duration of all projects/experiences combined and return the result as a string (e.g., \"0.5 Years\"). If only one date is listed, use \"0 Years\".\n7.  **Summary:** Create a concise (max 4-sentence) professional summary of the candidate's profile.\n\n### TARGET OUTPUT SCHEMA:\n{\n  \"Name\": \"\",\n  \"Email\": \"\",\n  \"Phone\": \"\",\n  \"Location\": \"\",\n  \"Skills\": [],\n  \"Experience\": [\n    {\"Company\": \"\", \"Role\": \"\", \"Start\": \"\", \"End\": \"\", \"Description\": \"\"}\n  ],\n  \"Education\": [\n    {\"Degree\": \"\", \"Institution\": \"\", \"Year\": \"\"}\n  ],\n  \"Projects\": [\n    {\"Title\": \"\", \"Technologies\": \"\", \"Dates\": \"\"}\n  ],\n  \"TotalYearsExperience\": \"\",\n  \"Summary\": \"\"\n}\ni need json object u r giving output and in that json i dont want like that i just need json strict formaat\n{{ $json.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        816,
+        432
+      ],
+      "id": "17dd2f23-6298-4d9b-8815-f617cdbe8faa",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        816,
+        656
+      ],
+      "id": "21d9bc7f-887b-453c-b646-a351d3f10d0b",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "0J5WRQ3Q2EVlEQLy",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5726a9db-7870-4044-bc20-04670505bacf",
+              "name": "resume_data",
+              "value": "={{ JSON.parse($json.output.match(/```json\\n([\\s\\S]*?)\\n```/)[1]) }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1168,
+        432
+      ],
+      "id": "d6626a15-9db2-4785-be24-4c981d1dd37e",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1tEaMeCbBC27UB0wzTyMSplc3r58CxUPQJm3scKvku1I",
+          "mode": "list",
+          "cachedResultName": "resume_log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tEaMeCbBC27UB0wzTyMSplc3r58CxUPQJm3scKvku1I/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tEaMeCbBC27UB0wzTyMSplc3r58CxUPQJm3scKvku1I/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.resume_data.Name }}",
+            "Email": "={{ $json.resume_data.Email }}",
+            "Phone": "={{ $json.resume_data.Phone }}",
+            "Location": "={{ $json.resume_data.Location }}",
+            "Skills": "={{ $json.resume_data.Skills }}",
+            "Experience": "={{ $json.resume_data.Experience }}",
+            "Education": "={{ $json.resume_data.Education }}",
+            "Projects": "={{ $json.resume_data.Projects }}",
+            "TotalYearsExperince": "={{ $json.resume_data.TotalYearsExperience }}",
+            "Summary": "={{ $json.resume_data.Summary }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Skills",
+              "displayName": "Skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Experience",
+              "displayName": "Experience",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Education",
+              "displayName": "Education",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Projects",
+              "displayName": "Projects",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "TotalYearsExperince",
+              "displayName": "TotalYearsExperince",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1376,
+        432
+      ],
+      "id": "1b653e10-46fe-485e-8565-0e518f8c6d2d",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8joT6XWmuthVPY4h",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "72b07f0a-7fe7-49d2-8ffc-9ed972ccf40d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b45cc389aa12a409e905362eff3b6764ad2530071acd95a91b22aeb8c53941b8"
+  },
+  "id": "YTIQ5s361ryELYrZ",
+  "tags": []
+}
