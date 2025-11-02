@@ -254,24 +254,6 @@ Display in chronological order
 
 ---
 
-## **Error Handling and Logging**
-
-* Handles network failures from GNews and Gemini APIs
-* Catches invalid API keys, rate-limit errors (403, 429)
-* Graceful fallback responses for missing data
-* Prints database operation logs to console
-
----
-
-## **Security & Privacy**
-
-* User chat IDs stored locally in SQLite (not shared externally)
-* API keys loaded securely from `.env`
-* No personally identifiable information collected
-* SQLite ensures isolated, local data persistence
-
----
-
 ## **Example Output**
 
 **Command:** `/news space`
