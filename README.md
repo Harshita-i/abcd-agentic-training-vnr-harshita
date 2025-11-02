@@ -291,45 +291,13 @@ AI News Digest: Space
 ## **Future Enhancements**
 
 * Multi-language AI summaries
-* Voice summaries (TTS integration)
-* Email/Daily digest subscription
-* Sentiment-based topic ranking
-* WebSocket-based live alerts
-
+* Voice summaries
+* Automated newsletter digest
+* AI-based keyword suggestions
+* Cloud-hosted analytics
 ---
 
-## **Detailed Flow Diagram**
-
-```
-+------------------+
-| User types /news |
-+------------------+
-          |
-          v
-+----------------------------+
-| Telegram Command Handler   |
-+----------------------------+
-          |
-          v
-+----------------------------+
-| Fetch News from GNews API  |
-+----------------------------+
-          |
-          v
-+----------------------------+
-| Summarize via Gemini Model |
-+----------------------------+
-          |
-          v
-+----------------------------+
-| Store in SQLite (memory.db)|
-+----------------------------+
-          |
-          v
-+----------------------------+
-| Send Summary + Notify Alerts|
-+----------------------------+
-```
-
+## **Video demo link**
+https://drive.google.com/file/d/1KmPwD4htbsY7_Ylt0xhizxqtPylGNvrg/view?usp=sharing
 
 
