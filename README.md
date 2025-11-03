@@ -118,6 +118,7 @@ The dashboard provides **visual insights** into bot usage patterns and trending 
 * Active alerts overview table
 * Recent summaries preview
 
+
 ### **Run Dashboard:**
 
 ```
