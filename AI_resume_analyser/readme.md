@@ -7,6 +7,7 @@ It extracts text from PDF resumes, processes the content using an AI model, and 
 
 ---
 
+
 ## Workflow Structure
 
 ### 1. **Google Drive Trigger**
@@ -152,3 +153,26 @@ Within seconds, n8n:
 2. Uses Google Gemini AI to analyze the content.
 3. Saves all candidate details into a Google Sheet for quick review.
 
+## System Architecture
+
+```mermaid
+flowchart LR
+    A[📂 Google Drive Trigger<br/>🡒 fileCreated] --> B[⬇️ Download File<br/>Download from Google Drive]
+    B --> C[📄 Extract from File<br/>Extract Text from PDF]
+    C --> D[🤖 AI Agent (Gemini Model)<br/>Analyze Resume Content]
+    D --> E[🧩 Edit Fields<br/>Map AI Output to Structured Data]
+    E --> F[📊 Append Row in Sheet<br/>Save Results to Google Sheets]
+
+    subgraph AI["Google Gemini Chat Model"]
+        G[🧠 Google Gemini Chat Model1]
+    end
+
+    D --- G
+
+    style A fill:#4285F4,stroke:#2A56C6,color:#fff
+    style B fill:#34A853,stroke:#0D652D,color:#fff
+    style C fill:#FABB05,stroke:#E37400,color:#fff
+    style D fill:#EA4335,stroke:#B31412,color:#fff
+    style E fill:#A142F4,stroke:#5E35B1,color:#fff
+    style F fill:#0F9D58,stroke:#0D652D,color:#fff
+    style G fill:#ffffff,stroke:#5F6368,color:#000
