@@ -7,43 +7,6 @@ It extracts text from PDF resumes, processes the content using an AI model, and 
 
 ---
 
-## Architecture
-
-graph TD
-    subgraph A[Trigger & Input]
-        GD_T([1. Google Drive Trigger]) --> GD_D[2. Download File]
-        style GD_T fill:#f9f,stroke:#333
-        style GD_D fill:#c0f9c0,stroke:#333
-    end
-
-    subgraph B[Preparation & AI Core]
-        GD_D --> EF[3. Extract From File]
-        EF --> AIA[4. AI Agent (Google Gemini)]
-        style EF fill:#f0f0c0,stroke:#333
-        style AIA fill:#c0c0f9,stroke:#333
-    end
-
-    subgraph C[Output & Storage]
-        AIA --> EFd[5. Edit Fields]
-        EFd --> S_A[[6. Append Row in Sheet]]
-        style EFd fill:#f9f9c0,stroke:#333
-        style S_A fill:#c0f9f9,stroke:#333
-    end
-
-    User[User Uploads PDF] -->> GD_T
-    AIA -.-> Model(Google Gemini Chat Model)
-    S_A -->> GS[Google Sheet Database]
-
-    subgraph Legend
-        LG1(Data Flow)
-        LG2(AI Processing)
-        LG3(Storage/Database)
-        style LG1 fill:#ffffff,stroke:#333
-        style LG2 fill:#c0c0f9,stroke:#333
-        style LG3 fill:#c0f9f9,stroke:#333
-    end
-
-
 ## Workflow Structure
 
 ### 1. **Google Drive Trigger**
