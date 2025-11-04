@@ -157,17 +157,17 @@ Within seconds, n8n:
 
 ```mermaid
 flowchart TD
-    A[Google Drive Trigger\n(fileCreated)] --> B[Download File\n(from Google Drive)]
-    B --> C[Extract from File\n(Extract Text from PDF)]
-    C --> D[AI Agent (Gemini Model)\nAnalyze Resume Content]
-    D --> E[Edit Fields\n(Map AI Output to Structured Data)]
-    E --> F[Append Row in Sheet\n(Save to Google Sheets)]
+    A["Google Drive Trigger (fileCreated)"] --> B["Download File from Google Drive"]
+    B --> C["Extract Text from PDF"]
+    C --> D["AI Agent (Gemini Model) - Analyze Resume"]
+    D --> E["Edit Fields - Map AI Output"]
+    E --> F["Append Row in Google Sheet"]
 
-    subgraph AI_Model [Google Gemini Chat Model]
-        G[Gemini Chat Model1]
+    subgraph G["Google Gemini Chat Model"]
+        H["Gemini Chat Model 1"]
     end
 
-    D --- G
+    D --- H
 
     style A fill:#4285F4,stroke:#2A56C6,color:#fff
     style B fill:#34A853,stroke:#0D652D,color:#fff
@@ -175,4 +175,4 @@ flowchart TD
     style D fill:#EA4335,stroke:#B31412,color:#fff
     style E fill:#A142F4,stroke:#5E35B1,color:#fff
     style F fill:#0F9D58,stroke:#0D652D,color:#fff
-    style G fill:#ffffff,stroke:#5F6368,color:#000
+    style H fill:#ffffff,stroke:#5F6368,color:#000
