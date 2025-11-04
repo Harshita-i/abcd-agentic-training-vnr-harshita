@@ -46,45 +46,23 @@ Analytics Dashboard (Streamlit)
 
 ---
 
-## **High-Level Architecture**
+## 🧠 System Architecture — AI News Telegram Bot
 
-```
-+-------------------+
-|   Telegram User   |
-+--------+----------+
-         |
-         v
-+-----------------------------+
-|   Telegram Bot Interface    |
-| (python-telegram-bot lib)   |
-+-------------+---------------+
-              |
-              v
-+-----------------------------+
-|        Application Logic    |
-| (Commands, Routing, etc.)   |
-+-------------+---------------+
-              |
-     +--------+--------+
-     |                 |
-     v                 v
-+-----------+   +------------------+
-|  GNews API|   | Google Gemini AI |
-| (News Data)|  | (AI Summarizer)  |
-+-----------+   +------------------+
-     |
-     v
-+---------------------------------------+
-|   SQLite Database (news_memory.db)    |
-| - interactions (user history)         |
-| - alerts (keyword subscriptions)      |
-+---------------------------------------+
-     |
-     v
-+--------------------------------------+
-| Streamlit Analytics Dashboard (UI)   |
-|   - Topic trends, alerts, usage data |
-+--------------------------------------+
+```mermaid
+flowchart TD
+    A["Telegram User"] --> B["Telegram Bot (Handlers)"]
+    B --> C["GNews API {News Data}"]
+    C --> D["Google Gemini AI (Summarizer)"]
+    D --> E["SQLite DB (Interactions, Alerts)"]
+    B --> E
+    E --> F["Streamlit Dashboard (Analytics)"]
+
+    style A fill:#0088cc,stroke:#005f8d,color:#fff
+    style B fill:#2e3a59,stroke:#1e2740,color:#fff
+    style C fill:#1a73e8,stroke:#0b47a9,color:#fff
+    style D fill:#ea4335,stroke:#b31412,color:#fff
+    style E fill:#34a853,stroke:#0d652d,color:#fff
+    style F fill:#fbbc04,stroke:#e37400,color:#000
 ```
 
 ---
