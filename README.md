@@ -46,7 +46,7 @@ Analytics Dashboard (Streamlit)
 
 ---
 
-## 🧠 System Architecture — AI News Telegram Bot
+## System Architecture — AI News Telegram Bot
 
 ```mermaid
 flowchart TD
