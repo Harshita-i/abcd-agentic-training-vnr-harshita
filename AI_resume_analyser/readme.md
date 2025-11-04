@@ -156,15 +156,15 @@ Within seconds, n8n:
 ## System Architecture
 
 ```mermaid
-flowchart LR
-    A[📂 Google Drive Trigger<br/>🡒 fileCreated] --> B[⬇️ Download File<br/>Download from Google Drive]
-    B --> C[📄 Extract from File<br/>Extract Text from PDF]
-    C --> D[🤖 AI Agent (Gemini Model)<br/>Analyze Resume Content]
-    D --> E[🧩 Edit Fields<br/>Map AI Output to Structured Data]
-    E --> F[📊 Append Row in Sheet<br/>Save Results to Google Sheets]
+flowchart TD
+    A[Google Drive Trigger\n(fileCreated)] --> B[Download File\n(from Google Drive)]
+    B --> C[Extract from File\n(Extract Text from PDF)]
+    C --> D[AI Agent (Gemini Model)\nAnalyze Resume Content]
+    D --> E[Edit Fields\n(Map AI Output to Structured Data)]
+    E --> F[Append Row in Sheet\n(Save to Google Sheets)]
 
-    subgraph AI["Google Gemini Chat Model"]
-        G[🧠 Google Gemini Chat Model1]
+    subgraph AI_Model [Google Gemini Chat Model]
+        G[Gemini Chat Model1]
     end
 
     D --- G
